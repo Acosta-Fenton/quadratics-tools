@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quadratics practice tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F7F9; --grid:#D9E5EB; --card:#FFFFFF; --ink:#1E2A33; --muted:#556873;
+  --line:#BFD0D9; --accent:#2B4FD8; --on-accent:#FFFFFF;
+  --sans:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif:"Source Serif 4", "Iowan Old Style", Georgia, serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121A20; --grid:#1D2A33; --card:#19232A; --ink:#E7EFF3; --muted:#9DAEB9;
+    --line:#33444F; --accent:#8FA8FF; --on-accent:#0E1630; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121A20; --grid:#1D2A33; --card:#19232A; --ink:#E7EFF3; --muted:#9DAEB9;
+  --line:#33444F; --accent:#8FA8FF; --on-accent:#0E1630; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*,*::before,*::after{box-sizing:inherit;}
+body{
+  margin:0; min-height:100vh; background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:1.5rem 1.5rem; color:var(--ink); font-family:var(--sans); font-size:1rem; line-height:1.5;
+}
+.wrap{max-width:46rem; margin:0 auto; padding:1.5rem 1rem 3rem;}
+h1{font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,7vw,2.8rem); line-height:1.1; margin:0 0 .5rem;}
+h1 i{font-style:italic;}
+.lede{margin:0 0 1.5rem; color:var(--muted); max-width:34rem;}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(15rem,1fr)); gap:1.1rem;}
+.card{
+  display:flex; flex-direction:column; gap:.5rem; text-decoration:none; color:var(--ink);
+  background:var(--card); border:2px solid var(--ink); border-radius:.75rem; padding:1.1rem 1rem;
+  box-shadow:.35rem .35rem 0 var(--line);
+}
+.card:hover{box-shadow:.35rem .35rem 0 var(--accent);}
+.card:focus-visible{outline:3px solid var(--accent); outline-offset:4px;}
+.card h3{font-family:var(--serif); font-weight:600; font-size:1.35rem; line-height:1.2; margin:0;}
+.card p{margin:0; color:var(--muted);}
+.tags{display:flex; flex-wrap:wrap; gap:.35rem; margin:.2rem 0;}
+.tags span{font-size:.85rem; border:2px solid var(--line); border-radius:2rem; padding:.05rem .6rem;}
+.go{margin-top:auto; padding-top:.4rem; font-weight:700; color:var(--accent);}
+h2.group{font-family:var(--serif); font-weight:600; font-size:1.3rem; margin:1.8rem 0 .7rem;}
+footer{margin-top:2.5rem; color:var(--muted); font-size:.95rem;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Quadratics <i>practice</i></h1>
+  <p class="lede">Short, interactive tools for working with quadratics. Pick one to get started.</p>
+
+  <h2 class="group">Factoring</h2>
+  <div class="grid">
+    <a class="card" href="factoring/">
+      <h3>Factoring: guess and check</h3>
+      <p>Guess two factors, then see them expanded with an area model and compared term by term with the target.</p>
+      <div class="tags"><span>Easy</span><span>Medium</span><span>Hard</span><span>Custom problems</span></div>
+      <span class="go">Open tool →</span>
+    </a>
+  </div>
+
+  <h2 class="group">Graphing parabolas</h2>
+  <div class="grid">
+    <a class="card" href="graphing-standard/">
+      <h3>Graphing from standard form</h3>
+      <p>Start with y = ax² + bx + c. Find the direction, y-intercept, axis of symmetry, vertex, and x-intercepts.</p>
+      <div class="tags"><span>Show or hide each piece</span><span>Worked steps</span><span>Custom problems</span></div>
+      <span class="go">Open tool →</span>
+    </a>
+    <a class="card" href="graphing-factored/">
+      <h3>Graphing from factored form</h3>
+      <p>Start with y = a(x − p)(x − q). Find the x-intercepts, axis of symmetry, vertex, and y-intercept.</p>
+      <div class="tags"><span>Show or hide each piece</span><span>Worked steps</span><span>Custom problems</span></div>
+      <span class="go">Open tool →</span>
+    </a>
+    <a class="card" href="graphing-vertex/">
+      <h3>Graphing from vertex form</h3>
+      <p>Start with y = a(x − h)² + k. Use the vertex and transformations of y = x² to build the graph.</p>
+      <div class="tags"><span>Show or hide each piece</span><span>Worked steps</span><span>Custom problems</span></div>
+      <span class="go">Open tool →</span>
+    </a>
+
+    <!-- To add a tool: copy one of the <a class="card"> blocks above, change the href
+         to the new tool's folder (for example "completing-the-square/"), and edit the text. -->
+  </div>
+
+  <footer>Nothing you type here is saved or sent anywhere.</footer>
+</main>
+</body>
+</html>

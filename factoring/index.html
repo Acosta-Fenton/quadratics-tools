@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Factoring: guess and check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F7F9; --grid:#D9E5EB; --card:#FFFFFF; --ink:#1E2A33; --muted:#556873;
+  --line:#BFD0D9; --accent:#2B4FD8; --on-accent:#FFFFFF;
+  --ok:#17703F; --ok-bg:#DCF1E4; --bad:#A63A25; --bad-bg:#FBE5DF;
+  --sans:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif:"Source Serif 4", "Iowan Old Style", Georgia, serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121A20; --grid:#1D2A33; --card:#19232A; --ink:#E7EFF3; --muted:#9DAEB9;
+    --line:#33444F; --accent:#8FA8FF; --on-accent:#0E1630;
+    --ok:#74D79F; --ok-bg:#16382A; --bad:#FF9E88; --bad-bg:#40221C;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121A20; --grid:#1D2A33; --card:#19232A; --ink:#E7EFF3; --muted:#9DAEB9;
+  --line:#33444F; --accent:#8FA8FF; --on-accent:#0E1630;
+  --ok:#74D79F; --ok-bg:#16382A; --bad:#FF9E88; --bad-bg:#40221C;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html.big{font-size:125%;}
+*,*::before,*::after{box-sizing:inherit;}
+body{
+  margin:0; min-height:100vh;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:1.5rem 1.5rem;
+  color:var(--ink); font-family:var(--sans); font-size:1rem; line-height:1.5;
+}
+.wrap{max-width:46rem; margin:0 auto; padding:1.25rem 1rem 3rem;}
+h1{font-family:var(--serif); font-weight:600; font-size:clamp(1.6rem,5.5vw,2.1rem); line-height:1.15; margin:0 0 .35rem;}
+.lede{margin:0 0 1rem; color:var(--muted); max-width:34rem;}
+.bar{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; justify-content:space-between;}
+.levels{display:inline-flex; border:2px solid var(--ink); border-radius:.6rem; overflow:hidden; background:var(--card);}
+.levels button{
+  font:inherit; font-weight:700; background:transparent; color:var(--ink); border:0; padding:.55rem .8rem; min-height:2.75rem; cursor:pointer;
+}
+.levels button + button{border-left:2px solid var(--ink);}
+.levels button[aria-pressed="true"]{background:var(--ink); color:var(--paper);}
+.ghost{
+  font:inherit; background:var(--card); color:var(--ink); border:2px solid var(--line); border-radius:.6rem;
+  padding:.5rem .9rem; min-height:2.75rem; cursor:pointer;
+}
+.ghost[aria-pressed="true"]{border-color:var(--ink); font-weight:700;}
+.note{margin:.6rem 0 0; color:var(--muted); font-size:.95rem;}
+
+.sheet{
+  margin-top:1.1rem; background:var(--card); border:2px solid var(--ink); border-radius:.75rem;
+  padding:1.2rem 1rem 1.1rem; box-shadow:.35rem .35rem 0 var(--line);
+}
+.label{margin:0; color:var(--muted); font-size:.95rem;}
+.problem{
+  font-family:var(--serif); font-size:clamp(2rem,9vw,3.1rem); line-height:1.2; margin:.2rem 0 1rem; overflow-wrap:anywhere;
+}
+.problem i, .poly i, .fac i{font-style:italic;}
+.answer{display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center; font-family:var(--serif); font-size:clamp(1.5rem,6.5vw,2rem);}
+.fac{display:inline-flex; align-items:center; gap:.2rem; flex-wrap:nowrap;}
+.paren{font-size:2.6em; font-weight:400; line-height:1; transform:translateY(-.06em); color:var(--muted);}
+.fac .x{font-style:italic; padding-right:.1rem;}
+input.num{
+  font-family:var(--serif); font-size:1em; text-align:center; width:2.3em; height:1.8em;
+  border:0; border-bottom:3px solid var(--ink); border-radius:0; background:transparent; color:var(--ink); padding:0;
+}
+input.num:focus-visible, button:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:.3rem;}
+button.sign, button.csign{
+  font-family:var(--serif); font-size:.95em; width:1.7em; height:1.7em; border-radius:50%;
+  border:2px solid var(--ink); background:var(--paper); color:var(--ink); cursor:pointer; padding:0; line-height:1;
+}
+.actions{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1.2rem;}
+.btn{
+  font:inherit; font-weight:700; border-radius:.6rem; min-height:2.9rem; padding:.55rem 1.2rem; cursor:pointer;
+  border:2px solid var(--ink); background:var(--card); color:var(--ink);
+}
+.btn.primary{background:var(--accent); color:var(--on-accent); border-color:var(--accent);}
+.btn[disabled]{opacity:.45; cursor:not-allowed;}
+
+.back{display:inline-block; margin:0 0 .8rem; color:var(--ink); font-weight:700; text-underline-offset:.2em;}
+.back:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:.3rem;}
+#feedback{margin-top:1rem;}
+.steps{margin:.7rem 0 0; padding:.6rem .8rem; border-left:4px solid var(--accent); background:var(--paper); border-radius:0 .4rem .4rem 0;}
+.steps p{margin:.25rem 0;}
+.steps .sub{color:var(--muted); font-size:.95rem;}
+.like{box-shadow:inset 0 -3px 0 var(--accent);}
+.area{display:grid; grid-template-columns:repeat(3,minmax(3rem,5.5rem)); gap:.3rem; font-family:var(--serif); font-size:1.2rem; text-align:center; margin:.6rem 0; width:max-content; max-width:100%;}
+.area .hd{align-self:center; color:var(--muted);}
+.area .c{border:2px solid var(--ink); border-radius:.3rem; padding:.55rem .25rem; background:var(--card);}
+.area .c.like{box-shadow:inset 0 0 0 3px var(--accent);}
+.levels{max-width:100%; overflow-x:auto;}
+.problem .sub{font-family:var(--sans); font-size:1.1rem; color:var(--muted);}
+.custom{margin-top:1rem;}
+.custom .sub{color:var(--muted); font-size:.95rem; margin:.2rem 0;}
+.centry{display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .4rem; font-family:var(--serif); font-size:clamp(1.4rem,6vw,1.9rem); margin:.6rem 0;}
+.centry input.num{width:2.6em;}
+input.num::placeholder{color:var(--muted); opacity:.7;}
+.panel{background:var(--card); border:2px solid var(--line); border-radius:.75rem; padding:1rem;}
+.panel.good{border-color:var(--ok); background:var(--ok-bg);}
+.panel h2{font-size:1.05rem; margin:0 0 .5rem; font-family:var(--sans);}
+.poly{font-family:var(--serif); font-size:1.25em;}
+.msg{margin:.5rem 0 0;}
+.table{display:grid; grid-template-columns:1.2fr 1fr 1fr 2.4rem; gap:.35rem .6rem; align-items:center; margin:.7rem 0 .3rem; max-width:26rem;}
+.table .th{font-size:.9rem; color:var(--muted);}
+.table .cell{font-family:var(--serif); font-size:1.15rem; padding:.2rem .5rem; border-radius:.4rem;}
+.table .name{font-family:var(--sans); font-size:1rem; padding-left:0;}
+.cell.ok{background:var(--ok-bg); color:var(--ok);}
+.cell.bad{background:var(--bad-bg); color:var(--bad);}
+.panel.good .cell.ok{background:var(--card);}
+.mark{font-weight:700; font-size:1.2rem;}
+.mark.ok{color:var(--ok);} .mark.bad{color:var(--bad);}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+#hints ul{margin:.5rem 0 0; padding-left:1.2rem;}
+#hints li{margin:.35rem 0;}
+#hints{margin-top:1rem;}
+#log{margin-top:1rem;}
+#log h2{font-size:1.05rem; margin:0 0 .4rem;}
+#log ol{margin:0; padding-left:2rem;}
+#log li{font-family:var(--serif); font-size:1.15rem; margin:.25rem 0; overflow-wrap:anywhere;}
+#log li .mark{font-family:var(--sans); font-size:1rem; margin-left:.4rem;}
+.stats{display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; margin:1.5rem 0 0; padding-top:1rem; border-top:2px solid var(--line);}
+.stats div{display:flex; flex-direction:column;}
+.stats dt{font-size:.9rem; color:var(--muted);}
+.stats dd{margin:0; font-family:var(--serif); font-size:1.5rem; font-weight:600;}
+@media (max-width:26rem){
+  .paren{font-size:2.2em;}
+  .answer{gap:.4rem .6rem;}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important; animation:none !important;}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="../">← All quadratics tools</a>
+  <header>
+    <h1>Factoring: guess and check</h1>
+    <p class="lede">Fill in two factors, then see what they multiply out to. Compare it with the target and adjust until every term matches.</p>
+    <div class="bar">
+      <div class="levels" role="group" aria-label="Difficulty">
+        <button type="button" data-level="easy" aria-pressed="true">Easy</button>
+        <button type="button" data-level="medium" aria-pressed="false">Medium</button>
+        <button type="button" data-level="hard" aria-pressed="false">Hard</button>
+        <button type="button" data-level="custom" aria-pressed="false">Custom</button>
+      </div>
+      <button type="button" class="ghost" id="big" aria-pressed="false">Large text for projecting</button>
+    </div>
+    <p class="note" id="levelNote"></p>
+  </header>
+
+  <section class="panel custom" id="customPanel" hidden>
+    <h2>Check a homework problem</h2>
+    <p class="sub">Type the trinomial from your homework. Leave a box blank for 1, and type 0 for a missing <i>x</i> term, like in <i>x</i>² − 9.</p>
+    <div class="centry">
+      <button type="button" class="csign" id="csa" data-k="0" aria-label="Sign of the x squared term: plus. Tap to switch.">+</button>
+      <input class="num cin" id="ca" inputmode="numeric" maxlength="3" placeholder="1" autocomplete="off" aria-label="Coefficient of x squared">
+      <span><i>x</i>²</span>
+      <button type="button" class="csign" id="csb" data-k="1" aria-label="Sign of the x term: plus. Tap to switch.">+</button>
+      <input class="num cin" id="cb" inputmode="numeric" maxlength="3" placeholder="1" autocomplete="off" aria-label="Coefficient of x">
+      <span><i>x</i></span>
+      <button type="button" class="csign" id="csc" data-k="2" aria-label="Sign of the constant: plus. Tap to switch.">+</button>
+      <input class="num cin" id="cc" inputmode="numeric" maxlength="3" placeholder="c" autocomplete="off" aria-label="Constant">
+    </div>
+    <div class="actions" style="margin-top:.4rem"><button type="button" class="btn primary" id="cgo">Use this problem</button></div>
+    <div id="cmsg" aria-live="polite"></div>
+  </section>
+
+  <section class="sheet" aria-labelledby="probLabel">
+    <p class="label" id="probLabel">Factor this trinomial</p>
+    <p class="problem" id="problem"></p>
+    <div class="answer" id="answerRow"></div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <section id="feedback" aria-live="polite"></section>
+  <section id="hints"></section>
+  <section id="log"></section>
+
+  <dl class="stats" id="stats"></dl>
+</main>
+
+<script>
+(function(){
+  var NOTES = {
+    easy: "x² + bx + c with positive constants, like x² + 7x + 12.",
+    medium: "x² + bx + c where the constants can be negative, like x² − 2x − 15.",
+    hard: "ax² + bx + c with a greater than 1, like 2x² + 7x + 3.",
+    custom: "Type in a trinomial from your homework, then factor it and check your answer."
+  };
+  var state = {level:"easy", prob:null, guesses:[], hints:0, done:false, revealed:false, signs:[1,1], stats:{solved:0, streak:0, tries:0}, lastKey:""};
+
+  function $(s){ return document.querySelector(s); }
+  function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function gcd(a,b){ return b ? gcd(b, a % b) : Math.abs(a); }
+  function nz(a,b){ var v=0; while(v===0) v=rnd(a,b); return v; }
+  function num(n){ return (n<0 ? "−" : "") + Math.abs(n); }
+
+  function genProblem(level){
+    var p,q,r,s,key;
+    do {
+      if(level==="easy"){ p=1; r=1; q=rnd(1,9); s=rnd(1,9); }
+      else if(level==="medium"){ p=1; r=1; q=nz(-9,9); s=nz(-9,9); }
+      else {
+        p=rnd(1,4); r=rnd(1,4); q=nz(-8,8); s=nz(-8,8);
+        if(p*r<2 || gcd(p,Math.abs(q))!==1 || gcd(r,Math.abs(s))!==1){ key=""; continue; }
+      }
+      key=[Math.min(q,s),Math.max(q,s),p,r].join(",");
+    } while(!key || key===state.lastKey);
+    state.lastKey=key;
+    return {p:p,q:q,r:r,s:s,a:p*r,b:p*s+q*r,c:q*s};
+  }
+
+  function poly(a,b,c){
+    var out="";
+    function add(v,sym){
+      if(v===0) return;
+      var abs=Math.abs(v);
+      var body=(sym && abs===1) ? sym : (abs + sym);
+      if(!out){ out=(v<0?"−":"")+body; }
+      else { out += (v<0 ? " − " : " + ") + body; }
+    }
+    add(a,"<i>x</i>²"); add(b,"<i>x</i>"); add(c,"");
+    return out || "0";
+  }
+  function fac(p,q){
+    var co = p===1 ? "" : p;
+    if(q===0) return "(" + co + "<i>x</i>)";
+    return "(" + co + "<i>x</i> " + (q<0?"−":"+") + " " + Math.abs(q) + ")";
+  }
+  function pairs(n){
+    var out=[]; for(var i=1;i*i<=n;i++){ if(n%i===0) out.push(i+" × "+(n/i)); } return out;
+  }
+
+  function hintList(){
+    var t=state.prob, out=[];
+    if(t.c>0){
+      out.push("The constant " + num(t.c) + " is positive, so the two constants in your factors have the same sign. The middle term is " + (t.b>0 ? "positive, so both are +." : "negative, so both are −."));
+    } else {
+      var extra = t.a===1 ? (t.b===0 ? " With no <i>x</i> term, the two constants are opposites." : " The constant with the larger size takes the sign of the middle term.") : "";
+      out.push("The constant " + num(t.c) + " is negative, so the two constants have opposite signs: one +, one −." + extra);
+    }
+    if(t.a===1){
+      out.push("The constants multiply to " + num(t.c) + ". Factor pairs of " + Math.abs(t.c) + ": " + pairs(Math.abs(t.c)).join(", ") + ". Which pair gives the middle term?");
+    } else {
+      out.push("The <i>x</i> coefficients multiply to " + t.a + " (" + pairs(t.a).join(", ") + "). The constants multiply to " + num(t.c) + " (factor pairs of " + Math.abs(t.c) + ": " + pairs(Math.abs(t.c)).join(", ") + "). Order matters, so try swapping which constant goes with which factor.");
+    }
+    out.push("One of the factors is <span class=\"poly\">" + fac(t.p,t.q) + "</span>.");
+    return out;
+  }
+
+  function renderProblem(){
+    var t=state.prob;
+    $("#problem").innerHTML = t ? poly(t.a,t.b,t.c) : "<span class=\"sub\">Enter a trinomial above to begin.</span>";
+    $("#levelNote").textContent = NOTES[state.level];
+    document.querySelectorAll(".levels button").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.level===state.level));
+    });
+    var hard = !!t && t.a>1;
+    var html="";
+    for(var i=0;t && i<2;i++){
+      html += "<span class=\"fac\"><span class=\"paren\" aria-hidden=\"true\">(</span>" +
+        (hard ? "<input class=\"num coef\" id=\"c"+i+"\" data-i=\""+i+"\" inputmode=\"numeric\" maxlength=\"1\" autocomplete=\"off\" aria-label=\"Coefficient of x in factor "+(i+1)+"\">" : "") +
+        "<span class=\"x\">x</span>" +
+        "<button type=\"button\" class=\"sign\" id=\"sg"+i+"\" data-i=\""+i+"\" aria-label=\"Sign in factor "+(i+1)+": plus. Tap to switch.\">+</button>" +
+        "<input class=\"num const\" id=\"k"+i+"\" data-i=\""+i+"\" inputmode=\"numeric\" maxlength=\"2\" autocomplete=\"off\" aria-label=\"Constant in factor "+(i+1)+"\">" +
+        "<span class=\"paren\" aria-hidden=\"true\">)</span></span>";
+    }
+    $("#answerRow").innerHTML = html;
+    state.signs=[1,1];
+  }
+
+  function renderActions(){
+    if(!state.prob){ $("#actions").innerHTML=""; return; }
+    var a="";
+    if(state.done || state.revealed){
+      a += "<button type=\"button\" class=\"btn primary\" id=\"next\">" + (state.level==="custom" ? "Enter another problem" : "Next problem") + "</button>";
+    } else {
+      a += "<button type=\"button\" class=\"btn primary\" id=\"check\">Check guess</button>";
+      a += "<button type=\"button\" class=\"btn\" id=\"hint\"" + (state.hints>=3 ? " disabled" : "") + ">Hint (" + state.hints + " of 3)</button>";
+      if(state.hints>=3 || state.guesses.length>=6){
+        a += "<button type=\"button\" class=\"btn\" id=\"reveal\">Show answer</button>";
+      }
+      if(state.level!=="custom") a += "<button type=\"button\" class=\"btn\" id=\"skip\">Skip</button>";
+    }
+    $("#actions").innerHTML = a;
+  }
+
+  function renderHints(){
+    if(!state.hints || state.done || state.revealed){ $("#hints").innerHTML=""; return; }
+    var list=hintList().slice(0,state.hints).map(function(h){ return "<li>"+h+"</li>"; }).join("");
+    $("#hints").innerHTML = "<div class=\"panel\"><h2>Hints</h2><ul>"+list+"</ul></div>";
+  }
+
+  function renderLog(){
+    var g=state.guesses;
+    if(!g.length){ $("#log").innerHTML=""; return; }
+    var shown=g.slice(-8).reverse();
+    var items=shown.map(function(x){
+      return "<li>" + fac(x.p,x.q) + fac(x.r,x.s) + " = " + poly(x.ga,x.gb,x.gc) +
+        "<span class=\"mark " + (x.ok?"ok":"bad") + "\">" + (x.ok ? "✓<span class=\"sr\"> correct</span>" : "✗<span class=\"sr\"> not yet</span>") + "</span></li>";
+    }).join("");
+    $("#log").innerHTML = "<h2>Your guesses</h2><ol reversed start=\""+g.length+"\">"+items+"</ol>";
+  }
+
+  function renderStats(){
+    var s=state.stats;
+    var avg = s.solved ? (s.tries/s.solved).toFixed(1) : "–";
+    $("#stats").innerHTML =
+      "<div><dt>Solved</dt><dd>"+s.solved+"</dd></div>" +
+      "<div><dt>Streak</dt><dd>"+s.streak+"</dd></div>" +
+      "<div><dt>Average guesses</dt><dd>"+avg+"</dd></div>";
+  }
+
+  var csigns=[1,1,1];
+  var CLABELS=['Sign of the x squared term','Sign of the x term','Sign of the constant'];
+  function cmsg(html){ $('#cmsg').innerHTML = html ? '<div class="msg">'+html+'</div>' : ''; }
+  function setCustomFields(a,b,c){
+    var ids=['#csa','#csb','#csc'], vals=[a,b,c];
+    vals.forEach(function(v,k){
+      csigns[k] = v<0 ? -1 : 1;
+      var btn=$(ids[k]);
+      btn.textContent = v<0 ? '−' : '+';
+      btn.setAttribute('aria-label', CLABELS[k]+': '+(v<0?'minus':'plus')+'. Tap to switch.');
+    });
+    $('#ca').value = Math.abs(a)===1 ? '' : String(Math.abs(a));
+    $('#cb').value = Math.abs(b)===1 ? '' : String(Math.abs(b));
+    $('#cc').value = String(Math.abs(c));
+  }
+  function clearCustom(){ setCustomFields(1,1,0); $('#cc').value=''; }
+  function findFactors(a,b,c){
+    var ac=Math.abs(c);
+    for(var p=1;p<=a;p++){
+      if(a%p) continue;
+      var r=a/p;
+      for(var d=1;d<=ac;d++){
+        if(ac%d) continue;
+        for(var sg=-1;sg<=1;sg+=2){
+          var q=sg*d, s=c/q;
+          if(p*s+q*r===b) return {p:p,q:q,r:r,s:s};
+        }
+      }
+    }
+    return null;
+  }
+  function startCustom(a,b,c){
+    var P=poly(a,b,c);
+    if(a===0){ cmsg('The <i>x</i>² coefficient can’t be 0, since that wouldn’t be a quadratic.'); return; }
+    if(c===0){ cmsg('There’s no constant term, so factor out an <i>x</i> first: <span class="poly">'+P+' = <i>x</i>'+fac(a,b)+'</span>. Nothing is left to guess and check.'); return; }
+    var g=gcd(gcd(Math.abs(a),Math.abs(b)),Math.abs(c));
+    if(a<0) g=-g;
+    if(g!==1){
+      var ra=a/g, rb=b/g, rc=c/g;
+      var gd = g===-1 ? '−' : num(g);
+      cmsg('Factor out the greatest common factor first: <span class="poly">'+P+' = '+gd+'('+poly(ra,rb,rc)+')</span>. Then factor what’s inside the parentheses.<div class="actions"><button type="button" class="btn primary" id="cuse" data-a="'+ra+'" data-b="'+rb+'" data-c="'+rc+'">Practice with '+poly(ra,rb,rc)+'</button></div>');
+      return;
+    }
+    var f=findFactors(a,b,c);
+    if(!f){ cmsg('That one doesn’t factor into whole-number factors. Double-check the numbers you typed, since a typo is the most common cause.'); return; }
+    cmsg('');
+    state.prob={p:f.p,q:f.q,r:f.r,s:f.s,a:a,b:b,c:c};
+    state.guesses=[]; state.hints=0; state.done=false; state.revealed=false;
+    $('#feedback').innerHTML='';
+    setCustomFields(a,b,c);
+    renderProblem(); renderActions(); renderHints(); renderLog(); renderStats();
+    var first=$('.answer input'); if(first) first.focus({preventScroll:true});
+  }
+  function useCustom(){
+    var A=$('#ca').value.trim(), B=$('#cb').value.trim(), C=$('#cc').value.trim();
+    if(C===''){ cmsg('Enter the constant. Type 0 if there isn’t one.'); return; }
+    var a=csigns[0]*(A==='' ? 1 : parseInt(A,10));
+    var b=csigns[1]*(B==='' ? 1 : parseInt(B,10));
+    var c=csigns[2]*parseInt(C,10);
+    startCustom(a,b,c);
+  }
+
+  function seq(items){
+    var out="";
+    items.forEach(function(it,i){
+      var v=it[0], sym=it[1], abs=Math.abs(v);
+      var body = v===0 ? "0" : ((sym && abs===1) ? sym : (abs + sym));
+      if(it[2]) body = "<span class=\"like\">" + body + "</span>";
+      if(!i){ out = (v<0 ? "−" : "") + body; }
+      else { out += (v<0 ? " − " : " + ") + body; }
+    });
+    return out;
+  }
+  function areaHtml(p,q,r,s){
+    var X='<i>x</i>';
+    function t(v,sym){ var abs=Math.abs(v); var body = v===0 ? '0' : ((sym && abs===1) ? sym : abs + sym); return (v<0 ? '−' : '') + body; }
+    function c(txt,cls){ return '<span class="'+cls+'">'+txt+'</span>'; }
+    return '<div class="area" role="group" aria-label="Area model">' +
+      c('','hd') + c(t(p,X),'hd') + c(t(q,''),'hd') +
+      c(t(r,X),'hd') + c(t(p*r,X+'²'),'c') + c(t(q*r,X),'c like') +
+      c(t(s,''),'hd') + c(t(p*s,X),'c like') + c(t(q*s,''),'c') +
+      '</div>';
+  }
+  function stepsHtml(p,q,r,s){
+    var before = seq([[p*r,"<i>x</i>²"],[p*s,"<i>x</i>",true],[q*r,"<i>x</i>",true],[q*s,""]]);
+    return "<div class=\"steps\">" + areaHtml(p,q,r,s) + "<p class=\"sub\">Add the four boxes, then combine the two <i>x</i> terms (outlined).</p>" +
+      "<p><strong>Before combining:</strong> <span class=\"poly\">" + before + "</span></p>" +
+      "<p><strong>After combining like terms:</strong> <span class=\"poly\">" + poly(p*r, p*s+q*r, q*s) + "</span></p></div>";
+  }
+
+  function feedbackFor(g){
+    var t=state.prob;
+    var rows=[["<i>x</i>² term",t.a,g.ga],["<i>x</i> term",t.b,g.gb],["Constant",t.c,g.gc]];
+    var matches=rows.filter(function(r){ return r[1]===r[2]; }).length;
+    var steps=stepsHtml(g.p,g.q,g.r,g.s);
+    var head = "Your guess " + "<span class=\"poly\">" + fac(g.p,g.q) + fac(g.r,g.s) + "</span> expands to <span class=\"poly\">" + poly(g.ga,g.gb,g.gc) + "</span>.";
+    var table = "<div class=\"table\" role=\"table\" aria-label=\"Target compared with your guess\">" +
+      "<span class=\"th\"></span><span class=\"th\">Target</span><span class=\"th\">Yours</span><span class=\"th\"></span>" +
+      rows.map(function(r){
+        var ok=r[1]===r[2];
+        return "<span class=\"name\">"+r[0]+"</span><span class=\"cell "+(ok?"ok":"bad")+"\">"+num(r[1])+"</span><span class=\"cell "+(ok?"ok":"bad")+"\">"+num(r[2])+"</span><span class=\"mark "+(ok?"ok":"bad")+"\">"+(ok?"✓<span class=\"sr\"> matches</span>":"✗<span class=\"sr\"> does not match</span>")+"</span>";
+      }).join("") + "</div>";
+    if(g.ok){
+      return "<div class=\"panel good\"><h2>Correct</h2><p class=\"msg\">" + head + " That matches the target exactly.</p>" + steps + table + "</div>";
+    }
+    var tip;
+    if(g.ga!==t.a){ tip = "The <i>x</i> coefficients in your factors need to multiply to " + t.a + "."; }
+    else if(g.gc!==t.c){ tip = "The constants in your factors need to multiply to " + num(t.c) + "."; }
+    else if(t.a===1){ tip = "The constants are close, but they need to add to " + num(t.b) + ". Try a different pair or flip a sign."; }
+    else { tip = "The ends match but the middle term doesn’t. Try swapping which constant goes with which factor, or flip a sign."; }
+    return "<div class=\"panel\"><h2>" + matches + " of 3 terms match</h2><p class=\"msg\">" + head + "</p>" + steps + table + "<p class=\"msg\">" + tip + "</p></div>";
+  }
+
+  function showMsg(text){
+    $("#feedback").innerHTML = "<div class=\"panel\"><p class=\"msg\" style=\"margin:0\">"+text+"</p></div>";
+  }
+
+  function readGuess(){
+    var hard = !!state.prob && state.prob.a>1;
+    function val(id){ var el=$(id); var v=el.value.trim(); return v==="" ? null : parseInt(v,10); }
+    var p = hard ? val("#c0") : 1, r = hard ? val("#c1") : 1;
+    var k0 = val("#k0"), k1 = val("#k1");
+    if(p===null || r===null || k0===null || k1===null){ showMsg("Fill in every box first."); return null; }
+    if(p<1 || r<1){ showMsg("Each <i>x</i> needs a coefficient of at least 1."); return null; }
+    return {p:p, q:state.signs[0]*k0, r:r, s:state.signs[1]*k1};
+  }
+
+  function check(){
+    if(state.done || state.revealed) return;
+    var g=readGuess(); if(!g) return;
+    g.ga=g.p*g.r; g.gb=g.p*g.s+g.q*g.r; g.gc=g.q*g.s;
+    var t=state.prob;
+    g.ok = (g.ga===t.a && g.gb===t.b && g.gc===t.c);
+    state.guesses.push(g);
+    if(g.ok){
+      state.done=true;
+      state.stats.solved++; state.stats.streak++; state.stats.tries+=state.guesses.length;
+    }
+    $("#feedback").innerHTML = feedbackFor(g);
+    renderActions(); renderHints(); renderLog(); renderStats();
+    if(g.ok){ var n=$("#next"); if(n) n.focus(); }
+  }
+
+  function reveal(){
+    var t=state.prob;
+    state.revealed=true; state.stats.streak=0;
+    $("#feedback").innerHTML = "<div class=\"panel\"><h2>One way to factor it</h2><p class=\"msg\"><span class=\"poly\">" + poly(t.a,t.b,t.c) + " = " + fac(t.p,t.q) + fac(t.r,t.s) + "</span></p>" + stepsHtml(t.p,t.q,t.r,t.s) + "<p class=\"msg\">Compare each step with your own work, then try the next one.</p></div>";
+    renderActions(); renderHints(); renderStats();
+    var n=$("#next"); if(n) n.focus();
+  }
+
+  function newProblem(){
+    $("#customPanel").hidden = state.level!=="custom";
+    if(state.level==="custom"){
+      state.prob=null; state.guesses=[]; state.hints=0; state.done=false; state.revealed=false;
+      $("#feedback").innerHTML=""; cmsg(""); clearCustom();
+      renderProblem(); renderActions(); renderHints(); renderLog(); renderStats();
+      var ca=$("#ca"); if(ca) ca.focus({preventScroll:true});
+      return;
+    }
+    state.prob=genProblem(state.level);
+    state.guesses=[]; state.hints=0; state.done=false; state.revealed=false;
+    $("#feedback").innerHTML="";
+    renderProblem(); renderActions(); renderHints(); renderLog(); renderStats();
+    var first=$(".answer input"); if(first) first.focus({preventScroll:true});
+  }
+
+  document.addEventListener("click", function(e){
+    var t=e.target;
+    if(!(t instanceof Element)) return;
+    var lv=t.closest(".levels button");
+    if(lv){ state.level=lv.dataset.level; newProblem(); return; }
+    if(t.closest("#big")){
+      var on=document.documentElement.classList.toggle("big");
+      $("#big").setAttribute("aria-pressed", String(on)); return;
+    }
+    var sg=t.closest("button.sign");
+    if(sg){
+      var i=+sg.dataset.i; state.signs[i]*=-1;
+      var plus=state.signs[i]===1;
+      sg.textContent = plus ? "+" : "−";
+      sg.setAttribute("aria-label","Sign in factor "+(i+1)+": "+(plus?"plus":"minus")+". Tap to switch.");
+      return;
+    }
+    var cs=t.closest("button.csign");
+    if(cs){
+      var k=+cs.dataset.k; csigns[k]*=-1; var pl=csigns[k]===1;
+      cs.textContent = pl ? "+" : "−";
+      cs.setAttribute("aria-label", CLABELS[k]+": "+(pl?"plus":"minus")+". Tap to switch.");
+      return;
+    }
+    if(t.closest("#cgo")) return useCustom();
+    var cu=t.closest("#cuse");
+    if(cu) return startCustom(+cu.dataset.a, +cu.dataset.b, +cu.dataset.c);
+    if(t.closest("#check")) return check();
+    if(t.closest("#hint")){ if(state.hints<3){ state.hints++; renderHints(); renderActions(); var h=$("#hint"); if(h && !h.disabled) h.focus(); } return; }
+    if(t.closest("#reveal")) return reveal();
+    if(t.closest("#next") || t.closest("#skip")) return newProblem();
+  });
+
+  document.addEventListener("input", function(e){
+    var el=e.target;
+    if(el.classList && el.classList.contains("num")){ el.value=el.value.replace(/\D/g,""); }
+  });
+  document.addEventListener("focusin", function(e){
+    var el=e.target;
+    if(el.classList && el.classList.contains("num")){ try{ el.select(); }catch(err){} }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Enter" && e.target.classList && e.target.classList.contains("num")){
+      e.preventDefault();
+      if(e.target.classList.contains("cin")){ useCustom(); return; }
+      if(!state.prob) return;
+      if(state.done || state.revealed) newProblem(); else check();
+    }
+  });
+
+  newProblem();
+})();
+</script>
+</body>
+</html>
