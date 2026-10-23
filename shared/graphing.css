@@ -24,6 +24,7 @@
   --c-vertex:#8FA8FF; --c-xint:#74D79F; --c-yint:#FFA66B; --c-extra:#C9A6FF;
   --ok:#74D79F; --bad:#FF9E88; color-scheme:dark;
 }
+[hidden]{display:none !important;}
 html{scroll-padding-top:env(safe-area-inset-top,0px);}
 html.big{font-size:125%;}
 *,*::before,*::after{box-sizing:inherit;}

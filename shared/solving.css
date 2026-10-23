@@ -1,0 +1,35 @@
+@import url("graphing.css");
+
+:root{
+  --va:#2B4FD8; --vb:#B3541E; --vc:#7A3FB5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --va:#8FA8FF; --vb:#FFA66B; --vc:#C9A6FF; }
+}
+:root[data-theme="dark"]{ --va:#8FA8FF; --vb:#FFA66B; --vc:#C9A6FF; }
+
+.wrap{max-width:54rem;}
+.controls{display:flex; flex-wrap:wrap; gap:.55rem; margin:1rem 0 .3rem;}
+.progress{margin:.3rem 0 0; color:var(--muted); font-size:.95rem;}
+.steps{margin-top:.6rem;}
+.step{background:var(--card); border:2px solid var(--line); border-radius:.75rem; padding:.8rem .95rem; margin:.7rem 0;}
+.step h2{font-family:var(--serif); font-weight:600; font-size:1.2rem; margin:0 0 .3rem;}
+.step h2 .n{display:inline-block; min-width:1.8em; margin-right:.3rem; color:var(--muted);}
+.st{margin:.4rem 0;}
+.sm{font-family:var(--serif); font-size:1.3rem; margin:.3rem 0; padding-left:1rem; overflow-wrap:anywhere;}
+.sm .sp{display:inline-block; width:1.2em;}
+.answer-box{margin-top:.8rem; background:var(--card); border:2px solid var(--ink); border-left-width:8px; border-radius:.75rem; padding:.8rem 1rem; box-shadow:.35rem .35rem 0 var(--line);}
+.answer-box h2{font-size:1rem; margin:0 0 .2rem; color:var(--muted); font-weight:700;}
+.answer-box .final{font-family:var(--serif); font-size:clamp(1.4rem,5.5vw,1.9rem); margin:0; overflow-wrap:anywhere;}
+.answer-box .final small{font-family:var(--sans); font-size:.95rem; color:var(--muted);}
+.empty{color:var(--muted);}
+
+/* color coordination for a, b, c */
+.va{color:var(--va); font-weight:600; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px;}
+.vb{color:var(--vb); font-weight:600; text-decoration:underline dashed; text-decoration-thickness:2px; text-underline-offset:4px;}
+.vc{color:var(--vc); font-weight:600; text-decoration:underline double; text-decoration-thickness:2px; text-underline-offset:4px;}
+.chips{display:flex; flex-wrap:wrap; gap:.5rem .9rem; padding-left:1rem; margin:.4rem 0;}
+.chip{font-family:var(--serif); font-size:1.35rem; border:2px solid currentColor; border-radius:.6rem; padding:.1rem .7rem; text-decoration:none;}
+.chip.va, .chip.vb, .chip.vc{text-decoration:none;}
+.chip.vb{border-style:dashed;}
+.chip.vc{border-style:double; border-width:4px;}
